@@ -1,6 +1,6 @@
 <?php
 // file includes
-//include("./gifnoc.php");
+include("./gifnoc.php");
 
 // function to check valid email address
 function checkValidEmail($email){
@@ -10,16 +10,18 @@ function checkValidEmail($email){
 }
 
 function createTable($conn){
-  $sql_create = "CREATE TABLE `users` (
-      `user_id` int(11) INT AUTO_INCREMENT PRIMARY KEY,
+  $sql_create = "CREATE TABLE `users2` (
+      `user_id` int(11) AUTO_INCREMENT PRIMARY KEY,
       `firstname` varchar(255) NOT NULL ,
       `surname` varchar(255) NOT NULL ,
-      `email` varchar(255) UNIQUE,
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+      `email` varchar(255) UNIQUE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ";
      if ($conn->query($sql_create) === TRUE) {
       echo "Table created successfully";
+      return true;
       } else {
-        echo "Error: " . $sql_create . "<br>" . $conn->error;
+        //echo "Error: " . $sql_create . "<br>" . $conn->error;
+        return $conn->error;
       }
 }
 
@@ -28,7 +30,7 @@ if (($h = fopen("users.csv", "r")) !== FALSE)
 {
   $cntr = 0;
   // Convert each line into the local $data variable
-  $sql_head = " INSERT INTO users (firstname, surname, email) VALUES ";
+  $sql_head = " INSERT INTO users2 (firstname, surname, email) VALUES ";
   $sql_val = "";
   $emailError = "";
   $email_arr  = array();
@@ -57,16 +59,19 @@ if (($h = fopen("users.csv", "r")) !== FALSE)
     }
     $cntr++;
   }
-  echo $sqlstring = $sql_head . $sql_val;
+   $sqlstring = $sql_head . $sql_val;
 
-  // echo $sqlstring = rtrim($sqlstring, ",");
-  //  if (createTable($conn)){
-  //   if ($conn->query($sqlstring) === TRUE) {
-  //     echo "New record created successfully";
-  //     } else {
-  //       echo "Error: " . $sqlstring . "<br>" . $conn->error;
-  //     }
-  //   }
+   $sqlstring = rtrim($sqlstring, ",");
+   if (createTable($conn) === true){
+    if ($conn->query($sqlstring) === TRUE) {
+      echo "\nNew records added successfully\n ";
+      } else {
+        echo " \nPlease correct the error and run the script again \n";
+        echo "Error: " . $sqlstring . "<br>" . $conn->error;
+      }
+    }else{
+      echo " \nPlease correct the error and run the script again \n" .$conn->error;
+    }
 
   // Close the file
   fclose($h);
