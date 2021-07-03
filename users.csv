@@ -11,3 +11,14 @@ Daley,thompson,daley@yahoo.co.nz
 kevin,Ruley,kevin.ruley@gmail.com
 Edward ,JIKES,edward@jikes@com.au
 
+INSERT INTO users (firstname, surname, email) VALUES
+ ('John', 'Smith', 'jsmith@gmail.com'),
+ ('Hamish', 'Jones', 'ham@seek.com'),
+ ('Phil', 'Carry', 'phil@open.edu.au'),
+ ('Johnny', 'O\'hare', 'john@yahoo.com.au'),
+ ('Mike', 'O\'connor', 'mo\'connor@cat.net.nz'),
+ ('William', 'Smythe', 'happy@ent.com.au'),
+ ('Sam!!', 'Walters', 'sam!@walters.org'),
+ ('Daley', 'Thompson', 'daley@yahoo.co.nz'),
+ ('Kevin', 'Ruley', 'kevin.ruley@gmail.com'
+ 
