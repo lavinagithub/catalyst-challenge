@@ -1,12 +1,7 @@
 <?php
 
-$maxNum = "";
-while (!is_numeric(($maxNum)) )
-{ 
-  $maxNum = readline('Enter the end of the loop (number from 10 to 100): ');
-}
-echo $maxNum;
-for ($i=1;$i<=$maxNum;$i++){
+
+for ($i=1;$i<=100;$i++){
     // $num = $i;
     // if ($i%5 == 0 && $i%3 ==0){
     //     $num = "Foobar";
