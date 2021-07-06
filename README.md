@@ -36,6 +36,7 @@ php user_upload.php --help
 
 #### Data is validated before insertion
 -  Name and surname field is be set to be capitalised e.g. from “john” to “John” before being inserted into DB
+- Leading and trailing spaces are removed from names
 - Emails are converted to lower case before being inserted into DB
 - The script validates the email address before inserting,  e.g. format “xxxx@asdf@asdf” is not a legal format). 
 - In case that an email is invalid, no insert is made to database and an error message is reported to STDOUT.
@@ -43,6 +44,6 @@ php user_upload.php --help
 ### Thank you
 > I'd like to thank you for giving me the opportunity to attempt this test. 
 > I have tried different combinations to make sure the code displays 
-> correct messages with different combinations.
+> correct messages.
 > There is definitely scope for refactoring. 
 > I will work on it further. However, my code is here for your review 

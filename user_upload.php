@@ -161,7 +161,7 @@ function printHelp(){
 • -u – MySQL username\n
 • -p – MySQL password\n
 • -h – MySQL host\n
-• -db – MySQL host\n
+• -db – MySQL database\n
 
 (Create table) php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --create_table \n
 (Drop table) php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --drop_table\n
