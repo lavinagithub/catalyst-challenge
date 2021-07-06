@@ -1,9 +1,10 @@
 <?php
-//var_dump($argv);  
-if (isset($argv[1])){
-  
-  $credErr = "";
+/***  6 July 2021 - Code by Lavina */
 
+//check passed args to CLI
+if (isset($argv[1])){
+  $credErr = "";
+  //username
   $uArr = (preg_grep('/^-u=*/', $argv));
   $uArrKey = array_keys((preg_grep('/^-u=*/', $argv)));
   if (count($uArrKey) > 0){
@@ -12,7 +13,7 @@ if (isset($argv[1])){
   }else{
       $credErr .= "\n Username not provided \n";
   }
-
+//password
   $pArr = (preg_grep('/^-p=*/', $argv) );
   $pArrKey = array_keys((preg_grep('/^-p=*/', $argv)));
   if (count($pArr) > 0){
@@ -21,7 +22,7 @@ if (isset($argv[1])){
   }else{
       $credErr .= "\n Password not provided \n";
   }
-
+//hostname
   $hArr = (preg_grep('/^-h=*/', $argv) );
   $hArrKey = array_keys((preg_grep('/^-h=*/', $argv)));
   if (count($hArr) > 0){
@@ -30,7 +31,7 @@ if (isset($argv[1])){
   }else{
       $credErr .= "\n Hostname not provided \n";
   }
-
+//database name
   $dbArr = (preg_grep('/^-db=*/', $argv));
   $dbArrKey = array_keys((preg_grep('/^-db=*/', $argv)));
   if (count($dbArr) > 0){
@@ -39,7 +40,7 @@ if (isset($argv[1])){
   }else{
       $credErr .= "\n Database name not provided \n";
   }
-
+// file path passed
   $fileErr = "";
   $fileArr = (preg_grep('/^--file=*/', $argv));
   $fileArrKey = array_keys((preg_grep('/^--file=*/', $argv)));
@@ -58,7 +59,6 @@ if (isset($argv[1])){
 
   // set connection if credentials are provided
   if (isset($h) && isset($u) && isset($p) && isset($db)){
-    
     $conn =  @mysqli_connect($h, $u, $p, $db);
     if (!$conn){
       die("\nConnection failed: " . mysqli_connect_error());
@@ -71,7 +71,7 @@ if (isset($argv[1])){
     exit;
   }
   
-  // call createTable
+  // call createTable if found directive
   if (in_array('--create_table', $argv)){
     if (connectDB($conn) === true){
       echo " \nSuccessfully connected to the db \n";
@@ -81,14 +81,13 @@ if (isset($argv[1])){
     }
   }
 
-  //Call dropTable
+  //Call dropTable if found directive
   if (in_array('--drop_table', $argv)){
     dropTable($conn);
   }
 
-  //call dryRun
+  //call dryRun if found directive
   if (in_array('--dry_run', $argv)){
-    
     if ((isset($pathTofile)) && (file_exists($pathTofile) === true) ){
       if (connectDB($conn) === true){
         echo "\nSuccessfully connected to the database \n";
@@ -111,9 +110,8 @@ if (isset($argv[1])){
     }
   }
 
-  // call insertData
+  // call insertData if found directive
   if (in_array('--insert_data', $argv)){
-   
      if ((isset($pathTofile)) && (file_exists($pathTofile) === true)){
       if (connectDB($conn) === true){
         echo "\nSuccessfully connected to the database \n";
@@ -129,13 +127,11 @@ if (isset($argv[1])){
         }   
       } else {
           die("\nConnection failed: " . mysqli_connect_error());
-          // check if table exists
       }
     }else{
       echo "\n Please make sure you've specified the file correctly or check the file path / file name \n"; 
     }
   }
-
 }else{
   echo "Invalid arguments - Try the following command for HELP \n 
   php user_upload.php --help \n\n";
@@ -165,6 +161,7 @@ function printHelp(){
 • -u – MySQL username\n
 • -p – MySQL password\n
 • -h – MySQL host\n
+• -db – MySQL host\n
 
 (Create table) php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --create_table \n
 (Drop table) php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --drop_table\n
