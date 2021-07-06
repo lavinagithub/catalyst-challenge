@@ -2,9 +2,10 @@
 ##### PHP version 7.4.2
 #####  Database name is _'catalyst-test'_ / Table name is _'users'_
 ##### The MySQL table has these fields:
+- user_id
 - name
 - surname
-- email (email isset to a UNIQUE index)
+- email (email is set to a UNIQUE index)
 
 #####  File name with the code is _'user_upload.php'_
 #####  CSV file name with data is _'users.csv'_
