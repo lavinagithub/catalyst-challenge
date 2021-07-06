@@ -1,4 +1,5 @@
 <?php
+
 //var_dump($argv);  
 if (isset($argv[1])){
   $credErr = "";
@@ -8,7 +9,8 @@ if (isset($argv[1])){
     $fileArr2 = explode("=",$fileArr[$fileArrKey[0]]);
     $pathTofile = $fileArr2[1];
   }else {
-    $credErr .= "\n File path and name not provided \n";
+    //$credErr .= "\n File path and name not provided \n";
+    $fileErr = "\n File path and name not correctly provided \n";
   }
 
   $uArr = (preg_grep('/^-u=*/', $argv));
@@ -47,14 +49,20 @@ if (isset($argv[1])){
       $credErr .= "\n Database name not provided \n";
   }
 
+  if (in_array('--help', $argv)){
+    printHelp();
+  }
   if (isset($h) && isset($u) && isset($p) && isset($db)){
-      $conn =  mysqli_connect($h, $u, $p, $db);
+    $conn =  @mysqli_connect($h, $u, $p, $db);
+    if (!$conn){
+      die("\nConnection failed: " . mysqli_connect_error());
+    } 
   } else{ // if credentials are not set
         echo "\n Could not connect \n";
         echo $credErr;
         echo "\n Use --help for help with directives \n";
         exit;
-    }
+  }
   
   if (in_array('--create_table', $argv)){
     if (connectDB($conn) === true){
@@ -109,9 +117,7 @@ if (isset($argv[1])){
     dropTable($conn);
   }
 
-  if (in_array('--help', $argv)){
-    printHelp();
-  }
+
   
 }else{
   echo "Invalid arguments - Try the following command for HELP \n 
@@ -149,25 +155,29 @@ function printHelp(){
 
 // create the table
 function createTable($conn){
-  $sql_create = "CREATE TABLE IF NOT EXISTS `users2` (
-      `user_id` int(11) AUTO_INCREMENT PRIMARY KEY,
-      `firstname` varchar(255) NOT NULL ,
-      `surname` varchar(255) NOT NULL ,
-      `email` varchar(255) UNIQUE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ";
-  if ($conn->query($sql_create) === TRUE) {
-    echo "Table created successfully\n";
-    return true;
-  } else {
-      echo "Error: " . $sql_create . "<br>" . $conn->error;
-  }
+   if ((checkTableExists($conn)) === false) {
+      $sql_create = "CREATE TABLE IF NOT EXISTS `users` (
+          `user_id` int(11) AUTO_INCREMENT PRIMARY KEY,
+          `firstname` varchar(255) NOT NULL ,
+          `surname` varchar(255) NOT NULL ,
+          `email` varchar(255) UNIQUE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ";
+      if ($conn->query($sql_create) === TRUE) {
+        echo "Table created successfully\n";
+        return true;
+      } else {
+          echo "Error: " . $sql_create . "<br>" . $conn->error;
+      }
+    }else{
+       echo "\nTable already exists \n Use --help for help with directives \n\n";
+    }
 }
 
 // drop the table
 function dropTable($conn){
   if ((checkTableExists($conn)) === true) {
         //Drop the table
-    $sql_drop = "DROP TABLE  `users2` ";
+    $sql_drop = "DROP TABLE  `users` ";
     if ($conn->query($sql_drop) === TRUE) {
       echo "Table dropped\n";
       return true;
@@ -182,7 +192,7 @@ function dropTable($conn){
 
 // function checks if the table exists 
 function checkTableExists($conn){
-  if ($conn->query("select 1 from `users2` LIMIT 1") !== false) {
+  if ($conn->query("select 1 from `users` LIMIT 1") !== false) {
     return true;
   }else{
     return false;
@@ -207,9 +217,9 @@ function dryRun($conn,$pathTofile){
     {
       if ($cntr >=1 ){
         $email = strtolower(trim($data[2]));
-        if (in_array($data[2], $email_arr)){ // store the error for email duplication
-          $dupEmailErr .= "\nDuplicate email . $data[2] \n";
-        }
+        // if (in_array($data[2], $email_arr)){ // store the error for email duplication
+        //   $dupEmailErr .= "\nDuplicate email . $data[2] \n";
+        // }
         // if conditions checks for a valid email address and checks for duplicates
         if(((checkValidEmail($email) !== false)) && !(in_array($data[2], $email_arr))){
           $record_count++;
@@ -237,7 +247,7 @@ function readFileInsertData($conn,$pathTofile){
   if (($myFile = fopen($pathTofile, "r")) !== FALSE) {
     $cntr = 0;
     // Convert each line into the local $data variable
-    $sql_head = " INSERT INTO users2 (firstname, surname, email) VALUES ";
+    $sql_head = " INSERT INTO users (firstname, surname, email) VALUES ";
     $sql_val = "";
     $emailError = "";
     $email_arr  = array();
@@ -246,9 +256,9 @@ function readFileInsertData($conn,$pathTofile){
       if ($cntr >=1 ){
         $email = strtolower(trim($data[2]));
 
-        if (in_array($data[2], $email_arr)){ // store the error for email duplication
-          $dupEmailErr .= "\nDuplicate email . $data[2] \n";
-        }
+        // if (in_array($data[2], $email_arr)){ // store the error for email duplication
+        //   $dupEmailErr .= "\nDuplicate email . $data[2] \n";
+        // }
         // if conditions checks for a valid email address and checks for duplicates
         if(((checkValidEmail($email) !== false)) && !(in_array($data[2], $email_arr))){
           // remove trailing and leading spaces, covert to lowercase, capitalise first letter, remove special characters from firstname
@@ -270,7 +280,7 @@ function readFileInsertData($conn,$pathTofile){
     if (createTable($conn) === true){
       if ($conn->query($sqlstring) === TRUE) {
         echo "\nNew records added successfully\n ";
-        echo $dupEmailErr;
+        //echo $dupEmailErr;
       } else {
         echo "\nError: " . $sqlstring . "<br>" . $conn->error;
       }
@@ -278,10 +288,9 @@ function readFileInsertData($conn,$pathTofile){
       echo " \nError" .$conn->error;
     }
     // Close the file
-    fclose($h);
+    fclose($myFile);
   }
-  $insert_results = "\nTotal records  inserted are $record_count \n
-          The following records are not inserted $emailError \n";
-          echo $insert_results;
+  $insert_results = "\n The following records are not inserted $emailError \n";
+  echo $insert_results;
 }
 ?>
