@@ -19,12 +19,16 @@
 - -db – MySQL host
 
 ### Run the following commands
-- (Create table) php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --create_table 
-- (Dry run) php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --file={PathToFile}/users.csv --dry_run
+- (Create table) 
+php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --create_table 
+- (Dry run)
+php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --file={PathToFile}/users.csv --dry_run
 - (Insert data) 
  php user_upload.php  -u=root -p=root -h=localhost -db=catalyst_test --file={PathToFile}/users.csv --insert_data
-- (Drop table) php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --drop_table
-- (Help) php user_upload.php --help 
+- (Drop table) 
+php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --drop_table
+- (Help) 
+php user_upload.php --help 
 
 ### Version control used is _'git'_ 
 - development process history can be seen in the commits history
