@@ -1,17 +1,8 @@
 <?php
 //var_dump($argv);  
 if (isset($argv[1])){
+  
   $credErr = "";
-  $fileErr = "";
-  $fileArr = (preg_grep('/^--file=*/', $argv));
-  $fileArrKey = array_keys((preg_grep('/^--file=*/', $argv)));
-  if (count($fileArrKey) > 0){
-    $fileArr2 = explode("=",$fileArr[$fileArrKey[0]]);
-    $pathTofile = $fileArr2[1];
-  }else {
-    //$credErr .= "\n File path and name not provided \n";
-    $fileErr = "\n File path and name not correctly provided \n";
-  }
 
   $uArr = (preg_grep('/^-u=*/', $argv));
   $uArrKey = array_keys((preg_grep('/^-u=*/', $argv)));
@@ -49,35 +40,56 @@ if (isset($argv[1])){
       $credErr .= "\n Database name not provided \n";
   }
 
+  $fileErr = "";
+  $fileArr = (preg_grep('/^--file=*/', $argv));
+  $fileArrKey = array_keys((preg_grep('/^--file=*/', $argv)));
+  if (count($fileArrKey) > 0){
+    $fileArr2 = explode("=",$fileArr[$fileArrKey[0]]);
+    $pathTofile = $fileArr2[1];
+  }else {
+    $fileErr = "\n File path and name not correctly provided \n";
+  }
+
+  // call  help function
   if (in_array('--help', $argv)){
     printHelp();
     exit;
   }
 
+  // set connection if credentials are provided
   if (isset($h) && isset($u) && isset($p) && isset($db)){
+    
     $conn =  @mysqli_connect($h, $u, $p, $db);
     if (!$conn){
       die("\nConnection failed: " . mysqli_connect_error());
     } 
-  } else{ // if credentials are not set
-        echo "\n Could not connect \n";
-        echo $fileErr;
-        echo $credErr;
-        echo "\n  php user_upload.php --help (for help with directives) \n";
-        exit;
+  }else{ // if credentials are not set
+    echo "\n Could not connect \n";
+    //echo $fileErr;
+    echo $credErr;
+    echo "\n  php user_upload.php --help (for help with directives) \n";
+    exit;
   }
   
+  // call createTable
   if (in_array('--create_table', $argv)){
     if (connectDB($conn) === true){
-        echo " \nSuccessfully connected to the db \n";
-        createTable($conn);
+      echo " \nSuccessfully connected to the db \n";
+      createTable($conn);
     }else{
       die("\nConnection failed: " . mysqli_connect_error());
     }
   }
-  //dry_run
+
+  //Call dropTable
+  if (in_array('--drop_table', $argv)){
+    dropTable($conn);
+  }
+
+  //call dryRun
   if (in_array('--dry_run', $argv)){
-    if (isset($pathTofile)){
+   
+    if ((isset($pathTofile)) && (file_exists($pathTofile) === true ) ){
       if (connectDB($conn) === true){
         echo "\nSuccessfully connected to the database \n";
         if ((checkTableExists($conn)) === true) {
@@ -95,14 +107,14 @@ if (isset($argv[1])){
           // check if table exists
       }
     }else{
-      echo "\n Please specify  path to file \n"; 
+      echo "\n Please make sure you've specified the file correctly or check the file path \n"; 
     }
   }
 
-  // insert_data
-
+  // call insertData
   if (in_array('--insert_data', $argv)){
-    if (isset($pathTofile)){
+    echo "me";
+     if ((isset($pathTofile)) && (file_exists($pathTofile))){
       if (connectDB($conn) === true){
         echo "\nSuccessfully connected to the database \n";
         if ((checkTableExists($conn)) === true) {
@@ -120,16 +132,10 @@ if (isset($argv[1])){
           // check if table exists
       }
     }else{
-      echo "\nPlease specify Path to file \n";
+      echo "\n Please make sure you've specified the file correctly or check the file path \n"; 
     }
   }
 
-  if (in_array('--drop_table', $argv)){
-    dropTable($conn);
-  }
-
-
-  
 }else{
   echo "Invalid arguments - Try the following command for HELP \n 
   php user_upload.php --help \n\n";
@@ -185,7 +191,7 @@ function createTable($conn){
     }
 }
 
-// drop the table
+// function to drop the table
 function dropTable($conn){
   if ((checkTableExists($conn)) === true) {
         //Drop the table
@@ -229,9 +235,6 @@ function dryRun($conn,$pathTofile){
     {
       if ($cntr >=1 ){
         $email = strtolower(trim($data[2]));
-        // if (in_array($data[2], $email_arr)){ // store the error for email duplication
-        //   $dupEmailErr .= "\nDuplicate email . $data[2] \n";
-        // }
         // if conditions checks for a valid email address and checks for duplicates
         if(((checkValidEmail($email) !== false)) && !(in_array($data[2], $email_arr))){
           $record_count++;
@@ -243,7 +246,6 @@ function dryRun($conn,$pathTofile){
       }
       $cntr++;
     }
-    
     // Close the file
     fclose($myFile);
     $dry_run_results = "\nTotal records to be inserted are $record_count \n
@@ -258,7 +260,9 @@ function dryRun($conn,$pathTofile){
 // Enter data into table users
 function readFileInsertData($conn,$pathTofile){
   // Open the file for reading
+    echo "here";
   if (($myFile = fopen($pathTofile, "r")) !== FALSE) {
+  
     $cntr = 0;
     // Convert each line into the local $data variable
     $sql_head = " INSERT INTO users (firstname, surname, email) VALUES ";
@@ -269,11 +273,7 @@ function readFileInsertData($conn,$pathTofile){
     {
       if ($cntr >=1 ){
         $email = strtolower(trim($data[2]));
-
-        // if (in_array($data[2], $email_arr)){ // store the error for email duplication
-        //   $dupEmailErr .= "\nDuplicate email . $data[2] \n";
-        // }
-        // if conditions checks for a valid email address and checks for duplicates
+       // if conditions checks for a valid email address and checks for duplicates
         if(((checkValidEmail($email) !== false)) && !(in_array($data[2], $email_arr))){
           // remove trailing and leading spaces, covert to lowercase, capitalise first letter, remove special characters from firstname
           $firstname = ucfirst(strtolower(trim($data[0])));
