@@ -88,8 +88,8 @@ if (isset($argv[1])){
 
   //call dryRun
   if (in_array('--dry_run', $argv)){
-   
-    if ((isset($pathTofile)) && (file_exists($pathTofile) === true ) ){
+    
+    if ((isset($pathTofile)) && (file_exists($pathTofile) === true) ){
       if (connectDB($conn) === true){
         echo "\nSuccessfully connected to the database \n";
         if ((checkTableExists($conn)) === true) {
@@ -107,14 +107,14 @@ if (isset($argv[1])){
           // check if table exists
       }
     }else{
-      echo "\n Please make sure you've specified the file correctly or check the file path \n"; 
+      echo "\n Please make sure you've specified the file correctly or check the file path / file name \n"; 
     }
   }
 
   // call insertData
   if (in_array('--insert_data', $argv)){
-    echo "me";
-     if ((isset($pathTofile)) && (file_exists($pathTofile))){
+   
+     if ((isset($pathTofile)) && (file_exists($pathTofile) === true)){
       if (connectDB($conn) === true){
         echo "\nSuccessfully connected to the database \n";
         if ((checkTableExists($conn)) === true) {
@@ -132,7 +132,7 @@ if (isset($argv[1])){
           // check if table exists
       }
     }else{
-      echo "\n Please make sure you've specified the file correctly or check the file path \n"; 
+      echo "\n Please make sure you've specified the file correctly or check the file path / file name \n"; 
     }
   }
 
@@ -158,16 +158,19 @@ function connectDB($conn){
 // print Help menu
 function printHelp(){
   $helpText = "\n Help with directives \n
-Create table \n
-php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --create_table
-\nDrop table\n
-php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --drop_table
-\nDry run\n
-php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --file={PathToFile}/users.csv --dry_run
-\nInsert data\n 
-php user_upload.php  -u=root -p=root -h=localhost -db=catalyst_test --file={PathToFile}/users.csv --insert_data
-\nHelp\n
-php user_upload.php --help \n" ;
+• --file [csv file name] – this is the name of the CSV to be parsed\n
+• --create_table – this will cause the MySQL users table to be built (and no further
+• action will be taken)\n
+• --dry_run – this will be used with the --file directive in case we want to run the script but not insert into the DB. All other functions will be executed, but the database won't be altered\n
+• -u – MySQL username\n
+• -p – MySQL password\n
+• -h – MySQL host\n
+
+(Create table) php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --create_table \n
+(Drop table) php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --drop_table\n
+(Dry run) php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --file={PathToFile}/users.csv --dry_run\n
+(Insert data) \n php user_upload.php  -u=root -p=root -h=localhost -db=catalyst_test --file={PathToFile}/users.csv --insert_data\n
+(Help) php user_upload.php --help \n" ;
   echo $helpText;
 }
 
@@ -187,7 +190,8 @@ function createTable($conn){
           echo "Error: " . $sql_create . "<br>" . $conn->error;
       }
     }else{
-       echo "\nTable already exists \n php user_upload.php --help (for help with directives) \n\n";
+       echo "\nTable already exists \n";
+       return true;
     }
 }
 
@@ -248,8 +252,7 @@ function dryRun($conn,$pathTofile){
     }
     // Close the file
     fclose($myFile);
-    $dry_run_results = "\nTotal records to be inserted are $record_count \n
-          The following records will not be inserted $emailError \n";
+    $dry_run_results = "\nTotal records to be inserted are $record_count \nThe following records will not be inserted $emailError \n";
           echo $dry_run_results;
     
   }else{
@@ -260,9 +263,7 @@ function dryRun($conn,$pathTofile){
 // Enter data into table users
 function readFileInsertData($conn,$pathTofile){
   // Open the file for reading
-    echo "here";
   if (($myFile = fopen($pathTofile, "r")) !== FALSE) {
-  
     $cntr = 0;
     // Convert each line into the local $data variable
     $sql_head = " INSERT INTO users (firstname, surname, email) VALUES ";
@@ -292,6 +293,7 @@ function readFileInsertData($conn,$pathTofile){
     $sqlstring = rtrim($sqlstring, ",");
     
     if (createTable($conn) === true){
+      
       if ($conn->query($sqlstring) === TRUE) {
         echo "\nNew records added successfully\n ";
         //echo $dupEmailErr;
