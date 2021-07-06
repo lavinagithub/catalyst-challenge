@@ -1,8 +1,8 @@
 <?php
-
 //var_dump($argv);  
 if (isset($argv[1])){
   $credErr = "";
+  $fileErr = "";
   $fileArr = (preg_grep('/^--file=*/', $argv));
   $fileArrKey = array_keys((preg_grep('/^--file=*/', $argv)));
   if (count($fileArrKey) > 0){
@@ -51,7 +51,9 @@ if (isset($argv[1])){
 
   if (in_array('--help', $argv)){
     printHelp();
+    exit;
   }
+
   if (isset($h) && isset($u) && isset($p) && isset($db)){
     $conn =  @mysqli_connect($h, $u, $p, $db);
     if (!$conn){
@@ -59,8 +61,9 @@ if (isset($argv[1])){
     } 
   } else{ // if credentials are not set
         echo "\n Could not connect \n";
+        echo $fileErr;
         echo $credErr;
-        echo "\n Use --help for help with directives \n";
+        echo "\n  php user_upload.php --help (for help with directives) \n";
         exit;
   }
   
@@ -74,42 +77,50 @@ if (isset($argv[1])){
   }
   //dry_run
   if (in_array('--dry_run', $argv)){
-    if (connectDB($conn) === true){
-      echo "\nSuccessfully connected to the database \n";
-      if ((checkTableExists($conn)) === true) {
-        //DO A DRY RUN
-        dryRun($conn,$pathTofile);
+    if (isset($pathTofile)){
+      if (connectDB($conn) === true){
+        echo "\nSuccessfully connected to the database \n";
+        if ((checkTableExists($conn)) === true) {
+          //DO A DRY RUN
+          dryRun($conn,$pathTofile);
+        }
+        else
+        {
+          echo "\nTable does not exist \n 
+                Use this command to create a table \n
+                php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --create_table \n\n";
+        }   
+      } else {
+          die("\nConnection failed: " . mysqli_connect_error());
+          // check if table exists
       }
-      else
-      {
-        echo "\nTable does not exist \n 
-              Use this command to create a table \n
-              php user_upload.php --file={pathToFile} -u=root -p=root -h=localhost -db=catalyst_test --create_table \n\n";
-      }   
-    } else {
-        die("\nConnection failed: " . mysqli_connect_error());
-        // check if table exists
+    }else{
+      echo "\n Please specify  path to file \n"; 
     }
   }
 
   // insert_data
 
   if (in_array('--insert_data', $argv)){
-    if (connectDB($conn) === true){
-      echo "\nSuccessfully connected to the database \n";
-      if ((checkTableExists($conn)) === true) {
-        //DO A DRY RUN
-        readFileInsertData($conn,$pathTofile);
+    if (isset($pathTofile)){
+      if (connectDB($conn) === true){
+        echo "\nSuccessfully connected to the database \n";
+        if ((checkTableExists($conn)) === true) {
+          //DO A DRY RUN
+          readFileInsertData($conn,$pathTofile);
+        }
+        else
+        {
+          echo "\nTable does not exist \n 
+                Use this command to create a table \n
+                php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --create_table \n\n";
+        }   
+      } else {
+          die("\nConnection failed: " . mysqli_connect_error());
+          // check if table exists
       }
-      else
-      {
-        echo "\nTable does not exist \n 
-              Use this command to create a table \n
-              php user_upload.php --file={pathToFile} -u=root -p=root -h=localhost -db=catalyst_test --create_table \n\n";
-      }   
-    } else {
-        die("\nConnection failed: " . mysqli_connect_error());
-        // check if table exists
+    }else{
+      echo "\nPlease specify Path to file \n";
     }
   }
 
@@ -141,16 +152,17 @@ function connectDB($conn){
 // print Help menu
 function printHelp(){
   $helpText = "\n Help with directives \n
-              • --file [csv file name] – this is the name of the CSV to be parsed\n
-              • --create_table – this will cause the MySQL users table to be built (and no further  action will be taken)\n
-              • --drop_table – this will cause the MySQL users table to be dropped\n
-              • --dry_run – this will be used with the --file directive in case we want to run the script but not insert into the DB. All other functions will be executed, but the database won't be altered\n
-              • -u – MySQL username\n
-              • -p – MySQL password\n
-              • -h – MySQL host\n
-              • -db – MySQL database name\n
-              • --help – which will output the above list of directives with details.\n" ;
-              echo $helpText;
+Create table \n
+php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --create_table
+\nDrop table\n
+php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --drop_table
+\nDry run\n
+php user_upload.php -u=root -p=root -h=localhost -db=catalyst_test --file={PathToFile}/users.csv --dry_run
+\nInsert data\n 
+php user_upload.php  -u=root -p=root -h=localhost -db=catalyst_test --file={PathToFile}/users.csv --insert_data
+\nHelp\n
+php user_upload.php --help \n" ;
+  echo $helpText;
 }
 
 // create the table
@@ -169,7 +181,7 @@ function createTable($conn){
           echo "Error: " . $sql_create . "<br>" . $conn->error;
       }
     }else{
-       echo "\nTable already exists \n Use --help for help with directives \n\n";
+       echo "\nTable already exists \n php user_upload.php --help (for help with directives) \n\n";
     }
 }
 
@@ -186,7 +198,7 @@ function dropTable($conn){
     }
   }else{
     echo "\nTable does not exist \n 
-          Use --help for help with directives \n\n";
+           php user_upload.php --help (for help with directives) \n\n";
   }
 }
 
@@ -208,7 +220,7 @@ function checkValidEmail($email){
 // dry run counts the number of records to be inserted / STDOUT the records not inserted
 function dryRun($conn,$pathTofile){
   // Open the file for reading
-  if (($myFile = fopen($pathTofile, "r")) !== FALSE) {
+  if (($myFile = @fopen($pathTofile, "r")) !== FALSE) {
     $cntr = 0;
     $record_count = 0;
     $emailError = "";
@@ -238,6 +250,8 @@ function dryRun($conn,$pathTofile){
           The following records will not be inserted $emailError \n";
           echo $dry_run_results;
     
+  }else{
+    echo "\n File path is incorrect \n";
   }
 }
 
